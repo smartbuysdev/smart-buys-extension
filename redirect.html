@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin">
+    <title>Smart Buys - Redirecting...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0053a0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        p { font-size: 16px; font-weight: 500; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <p>Loading deal...</p>
+
+    <script>
+        // CONFIG: Your Cloudflare Worker Endpoint
+        const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
+
+        const params = new URLSearchParams(window.location.search);
+        const destination = params.get('url');
+
+        if (destination) {
+            // 1. Fetch the monetized URL from your Worker (Server-to-Server)
+            // This keeps your API Key hidden in the Worker's environment variables.
+            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Signer failed");
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.url) {
+                        // 2. Perform the redirect
+                        // The Referer will be 'smartbuysdev.github.io'
+                        window.location.replace(data.url);
+                    } else {
+                        // Fallback if signing fails (sends non-monetized traffic)
+                        window.location.replace(destination);
+                    }
+                })
+                .catch(err => {
+                    console.error("Redirect Error:", err);
+                    // Fallback on error
+                    window.location.replace(destination);
+                });
+        } else {
+            document.body.innerHTML = '<p style="color:red">Error: Missing destination URL.</p>';
+        }
+    </script>
+</body>
+</html>
