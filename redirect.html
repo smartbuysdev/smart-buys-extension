@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="origin">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
     <title>Smart Buys - Redirecting...</title>
     <style>
         body {
@@ -46,7 +48,6 @@
 
         if (destination) {
             // 1. Fetch the monetized URL from your Worker (Server-to-Server)
-            // This keeps your API Key hidden in the Worker's environment variables.
             fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}`)
                 .then(response => {
                     if (!response.ok) throw new Error("Signer failed");
@@ -55,16 +56,14 @@
                 .then(data => {
                     if (data.url) {
                         // 2. Perform the redirect
-                        // The Referer will be 'smartbuysdev.github.io'
+                        // The Referer will now be the full URL: https://smartbuysdev.github.io/smart-buys-extension/redirect.html
                         window.location.replace(data.url);
                     } else {
-                        // Fallback if signing fails (sends non-monetized traffic)
                         window.location.replace(destination);
                     }
                 })
                 .catch(err => {
                     console.error("Redirect Error:", err);
-                    // Fallback on error
                     window.location.replace(destination);
                 });
         } else {
