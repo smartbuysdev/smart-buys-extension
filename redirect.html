@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <meta name="referrer" content="no-referrer-when-downgrade">
-    
     <title>Smart Buys - Redirecting...</title>
     <style>
         body {
@@ -28,10 +26,7 @@
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         p { font-size: 16px; font-weight: 500; color: #555; }
     </style>
 </head>
@@ -40,14 +35,12 @@
     <p>Loading deal...</p>
 
     <script>
-        // CONFIG: Your Cloudflare Worker Endpoint
         const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
 
         const params = new URLSearchParams(window.location.search);
         const destination = params.get('url');
 
         if (destination) {
-            // 1. Fetch the monetized URL from your Worker (Server-to-Server)
             fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}`)
                 .then(response => {
                     if (!response.ok) throw new Error("Signer failed");
@@ -55,8 +48,17 @@
                 })
                 .then(data => {
                     if (data.url) {
-                        // 2. Perform the redirect
-                        // The Referer will now be the full URL: https://smartbuysdev.github.io/smart-buys-extension/redirect.html
+                        // --- CLEANING STEP ---
+                        // Remove the ?url=... junk from the browser address bar.
+                        // This ensures the Referer sent to Sovrn is just ".../redirect.html"
+                        try {
+                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                            window.history.replaceState(null, "", cleanUrl);
+                        } catch (e) {
+                            // Ignore history errors
+                        }
+
+                        // Now redirect. Sovrn will see the clean URL as the referrer.
                         window.location.replace(data.url);
                     } else {
                         window.location.replace(destination);
