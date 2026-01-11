@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
     <title>Smart Buys - The Best Price Tracker for Chrome</title>
     <style>
+        /* --- LANDING PAGE STYLES --- */
         :root {
             --primary: #007bff;
             --dark: #2c3e50;
@@ -39,53 +43,122 @@
         /* Footer */
         footer { background: var(--dark); color: white; padding: 40px 5%; text-align: center; }
         footer a { color: #aaa; text-decoration: none; }
+
+        /* --- REDIRECT LOADER STYLES (Hidden by default) --- */
+        #loading-ui {
+            display: none; /* Hidden unless redirecting */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f9f9f9; z-index: 9999;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0053a0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { font-size: 16px; font-weight: 500; color: #555; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <div class="logo">
-            <img src="SmartBuys logo.png" alt="Smart Buys Logo">
-            Smart Buys
-        </div>
-        <a href="https://chrome.google.com/webstore/detail/obachdidijemnmhaecbnibmmancdmhdj" class="btn" style="padding: 10px 20px; font-size: 0.9rem;">Get Extension</a>
+    <div id="loading-ui">
+        <div class="loader"></div>
+        <p class="loading-text">Loading deal...</p>
     </div>
 
-    <div class="hero">
-        <h1>Stop Overpaying on Amazon</h1>
-        <p>Smart Buys automatically checks eBay for lower prices on the exact item you are viewing. Shop with confidence knowing you have the best deal.</p>
-        
-        <a href="https://chrome.google.com/webstore/detail/obachdidijemnmhaecbnibmmancdmhdj" class="btn">Add to Chrome - It's Free</a>
-        
-        <div class="hero-image">
-            <img src="SmartBuys logo.png" alt="Smart Buys Dashboard">
+    <div id="landing-ui" style="display:none;">
+        <div class="navbar">
+            <div class="logo">
+                <img src="SmartBuys logo.png" alt="Smart Buys Logo">
+                Smart Buys
+            </div>
+            <a href="https://chrome.google.com/webstore/detail/obachdidijemnmhaecbnibmmancdmhdj" class="btn" style="padding: 10px 20px; font-size: 0.9rem;">Get Extension</a>
         </div>
-    </div>
 
-    <div class="features">
-        <h2>How It Works</h2>
-        <div class="feature-grid">
-            <div class="feature-item">
-                <h3>1. Shop Normally</h3>
-                <p>Browse Amazon products just like you always do. We stay hidden until we find a better price.</p>
-            </div>
-            <div class="feature-item">
-                <h3>2. Instant Comparison</h3>
-                <p>If we find a cheaper match on eBay, a notification appears instantly with the price difference.</p>
-            </div>
-            <div class="feature-item">
-                <h3>3. Secure Checkout</h3>
-                <p>Click the link to go directly to the verified listing. We only track prices, not your personal data.</p>
+        <div class="hero">
+            <h1>Stop Overpaying on Amazon</h1>
+            <p>Smart Buys automatically checks eBay for lower prices on the exact item you are viewing. Shop with confidence knowing you have the best deal.</p>
+            
+            <a href="https://chrome.google.com/webstore/detail/obachdidijemnmhaecbnibmmancdmhdj" class="btn">Add to Chrome - It's Free</a>
+            
+            <div class="hero-image">
+                <img src="SmartBuys logo.png" alt="Smart Buys Dashboard">
             </div>
         </div>
+
+        <div class="features">
+            <h2>How It Works</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <h3>1. Shop Normally</h3>
+                    <p>Browse Amazon products just like you always do. We stay hidden until we find a better price.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>2. Instant Comparison</h3>
+                    <p>If we find a cheaper match on eBay, a notification appears instantly with the price difference.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>3. Secure Checkout</h3>
+                    <p>Click the link to go directly to the verified listing. We only track prices, not your personal data.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Smart Buys. All rights reserved.</p>
+            <p style="font-size: 0.8rem; margin-top: 20px;">
+                <a href="#">Privacy Policy</a> | <a href="mailto:smartbuys.dev@gmail.com">Contact Support</a>
+            </p>
+        </footer>
     </div>
 
-    <footer>
-        <p>&copy; 2025 Smart Buys. All rights reserved.</p>
-        <p style="font-size: 0.8rem; margin-top: 20px;">
-            <a href="#">Privacy Policy</a> | <a href="mailto:smartbuys.dev@gmail.com">Contact Support</a>
-        </p>
-    </footer>
+    <script>
+        const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
+        const params = new URLSearchParams(window.location.search);
+        const destination = params.get('url');
+
+        // === DECISION: REDIRECT OR LANDING? ===
+        if (destination) {
+            // A. EXTENSION MODE: Show Loader, Hide Landing
+            const loader = document.getElementById('loading-ui');
+            loader.style.display = 'flex'; 
+
+            // Fetch signed link from Worker
+            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Signer failed");
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.url) {
+                        // CLEANUP: Remove ?url=... from address bar so Sovrn sees clean Referer
+                        try {
+                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                            window.history.replaceState(null, "", cleanUrl);
+                        } catch (e) {}
+
+                        // REDIRECT
+                        window.location.replace(data.url);
+                    } else {
+                        window.location.replace(destination);
+                    }
+                })
+                .catch(err => {
+                    console.error("Redirect Error:", err);
+                    window.location.replace(destination);
+                });
+
+        } else {
+            // B. VISITOR MODE: Show Landing Page
+            document.getElementById('landing-ui').style.display = 'block';
+        }
+    </script>
+
     <script type="text/javascript" src="https://s.skimresources.com/js/296042X1783472.skimlinks.js"></script>
     <script type="text/javascript">
       var vglnk = {key: '9930c397345540f14a1db7c22c161f25'};
@@ -97,6 +170,5 @@
       }(document, 'script'));
     </script>
 
-
-    </body>
+</body>
 </html>
