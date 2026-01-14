@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta name="referrer" content="no-referrer-when-downgrade">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     
     <title>Smart Buys - The Best Price Tracker for Chrome</title>
     <style>
@@ -122,14 +125,30 @@
         const params = new URLSearchParams(window.location.search);
         const destination = params.get('url');
 
+        // Helper: Generate or Retrieve Persistent User ID (CUID)
+        function getCUID() {
+            let cuid = localStorage.getItem('sovrn_cuid');
+            if (!cuid) {
+                // Simple random ID generator
+                cuid = 'sb_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('sovrn_cuid', cuid);
+            }
+            return cuid;
+        }
+
         // === DECISION: REDIRECT OR LANDING? ===
         if (destination) {
             // A. EXTENSION MODE: Show Loader, Hide Landing
             const loader = document.getElementById('loading-ui');
             loader.style.display = 'flex'; 
 
+            // Prepare Contextual Params
+            const cuid = getCUID();
+            // We use the CLEAN location (no params) as the 'loc'
+            const currentLoc = window.location.protocol + "//" + window.location.host + window.location.pathname;
+
             // Fetch signed link from Worker
-            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}`)
+            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&loc=${encodeURIComponent(currentLoc)}`)
                 .then(response => {
                     if (!response.ok) throw new Error("Signer failed");
                     return response.json();
@@ -138,12 +157,23 @@
                     if (data.url) {
                         // CLEANUP: Remove ?url=... from address bar so Sovrn sees clean Referer
                         try {
-                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                            window.history.replaceState(null, "", cleanUrl);
+                            window.history.replaceState(null, "", currentLoc);
                         } catch (e) {}
 
-                        // REDIRECT
-                        window.location.replace(data.url);
+                        // REDIRECT (Gold Standard: Simulated Click)
+                        // Using a physical DOM click is more reliable for Referrer transmission 
+                        // and fraud detection than window.location.replace()
+                        var a = document.createElement('a');
+                        a.href = data.url;
+                        a.id = 'redirect-link';
+                        a.style.display = 'none';
+                        a.rel = 'noreferrer'; // Let the meta tag handle the policy, but be safe
+                        document.body.appendChild(a);
+                        
+                        setTimeout(function(){
+                            document.getElementById('redirect-link').click();
+                        }, 100);
+
                     } else {
                         window.location.replace(destination);
                     }
