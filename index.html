@@ -14,7 +14,7 @@
         :root { --primary: #007bff; --dark: #2c3e50; }
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; color: #333; line-height: 1.6; }
         
-        /* Navbar & Landing UI (Simplified for brevity, keep your full styling) */
+        /* Navbar & Landing UI */
         .navbar { padding: 20px 5%; display: flex; align-items: center; justify-content: space-between; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .logo { font-weight: bold; font-size: 1.2rem; color: var(--dark); display: flex; align-items: center; }
         .logo img { height: 40px; margin-right: 10px; }
@@ -53,7 +53,7 @@
     </div>
 
     <script>
-        console.log("Bridge Logic v2 Loaded"); // CHECK CONSOLE FOR THIS MESSAGE
+        console.log("Bridge Logic v3 (Humanized) Loaded");
 
         const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
         const params = new URLSearchParams(window.location.search);
@@ -73,30 +73,25 @@
             const cuid = getCUID();
             const currentLoc = window.location.protocol + "//" + window.location.host + window.location.pathname;
 
-            // Added timestamp to prevent worker response caching
             fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&loc=${encodeURIComponent(currentLoc)}&_t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.url) {
                         try { window.history.replaceState(null, "", currentLoc); } catch (e) {}
 
-                        // === THE CRITICAL FIX ===
                         var a = document.createElement('a');
                         a.href = data.url;
                         a.id = 'redirect-link';
                         a.style.display = 'none';
-                        
-                        // EXPLICITLY FORCE THE POLICY ON THE ELEMENT
                         a.referrerPolicy = "no-referrer-when-downgrade";
-                        
-                        // ENSURE 'REL' IS CLEAN
                         a.rel = ""; 
 
                         document.body.appendChild(a);
                         
+                        // INCREASED DELAY to 800ms to look more like a human interaction
                         setTimeout(() => {
                             document.getElementById('redirect-link').click();
-                        }, 100);
+                        }, 800);
                     } else {
                         window.location.replace(destination);
                     }
