@@ -62,7 +62,10 @@
         function getCUID() {
             let cuid = localStorage.getItem('sovrn_cuid');
             if (!cuid) {
-                cuid = 'sb_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                // Generate alphanumeric-only CUID (no special characters per Sovrn requirements)
+                const randomPart = Math.random().toString(36).substr(2, 9);
+                const timestamp = Date.now().toString();
+                cuid = 'sb' + randomPart + timestamp;
                 localStorage.setItem('sovrn_cuid', cuid);
             }
             return cuid;
@@ -71,9 +74,8 @@
         if (destination) {
             document.getElementById('loading-ui').style.display = 'flex';
             const cuid = getCUID();
-            const currentLoc = window.location.protocol + "//" + window.location.host + window.location.pathname;
 
-            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&loc=${encodeURIComponent(currentLoc)}&_t=${Date.now()}`)
+            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&_t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.url) {
