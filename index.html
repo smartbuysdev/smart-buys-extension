@@ -75,11 +75,14 @@
             document.getElementById('loading-ui').style.display = 'flex';
             const cuid = getCUID();
 
+            // Clean URL to avoid exposing destination in referrer
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+
             fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&_t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.url) {
-                        try { window.history.replaceState(null, "", currentLoc); } catch (e) {}
+                        try { window.history.replaceState(null, "", cleanUrl); } catch (e) {}
 
                         var a = document.createElement('a');
                         a.href = data.url;
