@@ -84,10 +84,20 @@
                     if (data.url) {
                         try { window.history.replaceState(null, "", cleanUrl); } catch (e) {}
 
-                        // Use direct navigation to bypass referrer policy restrictions
+                        // Create anchor element to simulate human click behavior
+                        var a = document.createElement('a');
+                        a.href = data.url;
+                        a.id = 'redirect-link';
+                        a.style.display = 'none';
+                        a.referrerPolicy = "no-referrer-when-downgrade";
+                        a.rel = "";
+                        document.body.appendChild(a);
+
+                        // Random delay (800-1200ms) to simulate human behavior and avoid bot detection
+                        const humanDelay = 800 + Math.floor(Math.random() * 400);
                         setTimeout(() => {
-                            window.location.href = data.url;
-                        }, 1800);
+                            document.getElementById('redirect-link').click();
+                        }, humanDelay);
                     } else {
                         window.location.replace(destination);
                     }
