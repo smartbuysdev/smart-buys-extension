@@ -52,8 +52,15 @@
         </div>
     </div>
 
+    <!-- TEST SECTION - REMOVE AFTER TESTING -->
+    <div id="test-section" style="padding: 40px; text-align: center; background: #fff3cd; border-top: 2px solid #ffc107;">
+        <p style="margin-bottom: 15px; font-weight: bold;">Test Button (real user click):</p>
+        <a id="test-link" href="#" class="btn" style="display:none; font-size: 1.1rem;">Continue to eBay →</a>
+        <p id="test-loading">Loading test link...</p>
+    </div>
+
     <script>
-        console.log("🚀 Smart Buys Bridge v4.0 - Anchor Click with Random Delay - ACTIVE");
+        console.log("🚀 Smart Buys Bridge v4.1 - WITH TEST BUTTON - ACTIVE");
 
         const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
         const params = new URLSearchParams(window.location.search);
@@ -109,6 +116,27 @@
         } else {
             document.getElementById('landing-ui').style.display = 'block';
         }
+
+        // TEST BUTTON LOGIC - REMOVE AFTER TESTING
+        const TEST_EBAY_URL = "https://www.ebay.com/itm/168120445294";
+        const testCuid = getCUID();
+
+        fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(TEST_EBAY_URL)}&cuid=${encodeURIComponent(testCuid)}&_t=${Date.now()}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.url) {
+                    const testLink = document.getElementById('test-link');
+                    testLink.href = data.url;
+                    testLink.referrerPolicy = "no-referrer-when-downgrade";
+                    testLink.style.display = 'inline-block';
+                    document.getElementById('test-loading').style.display = 'none';
+                    console.log("✅ Test link ready:", data.url);
+                }
+            })
+            .catch(err => {
+                document.getElementById('test-loading').innerText = "Error loading test link";
+                console.error("Test link error:", err);
+            });
     </script>
 </body>
 </html>
