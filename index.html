@@ -66,26 +66,13 @@
         const params = new URLSearchParams(window.location.search);
         const destination = params.get('url');
 
-        function getCUID() {
-            let cuid = localStorage.getItem('sovrn_cuid');
-            if (!cuid) {
-                // Generate alphanumeric-only CUID (no special characters per Sovrn requirements)
-                const randomPart = Math.random().toString(36).substr(2, 9);
-                const timestamp = Date.now().toString();
-                cuid = 'sb' + randomPart + timestamp;
-                localStorage.setItem('sovrn_cuid', cuid);
-            }
-            return cuid;
-        }
-
         if (destination) {
             document.getElementById('loading-ui').style.display = 'flex';
-            const cuid = getCUID();
 
             // Clean URL to avoid exposing destination in referrer
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
 
-            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&_t=${Date.now()}`)
+            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&_t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.url) {
@@ -119,9 +106,8 @@
 
         // TEST BUTTON LOGIC - REMOVE AFTER TESTING
         const TEST_EBAY_URL = "https://www.ebay.com/itm/405211918254";
-        const testCuid = getCUID();
 
-        fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(TEST_EBAY_URL)}&cuid=${encodeURIComponent(testCuid)}&_t=${Date.now()}`)
+        fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(TEST_EBAY_URL)}&_t=${Date.now()}`)
             .then(res => res.json())
             .then(data => {
                 if (data.url) {
