@@ -52,28 +52,10 @@
         </div>
     </div>
 
-    <!-- TEST SECTION - REMOVE AFTER TESTING -->
-    <div id="test-section" style="padding: 40px; text-align: center; background: #fff3cd; border-top: 2px solid #ffc107;">
-        <p style="margin-bottom: 15px; font-weight: bold;">Test Buttons (real user click):</p>
-
-        <!-- NEW FORMAT: sovrn.co -->
-        <a id="test-link-new" href="#" class="btn" style="display:none; font-size: 1.1rem;">NEW format (sovrn.co) →</a>
-        <p id="test-loading-new">Loading new format link...</p>
-        <br><br>
-
-        <!-- LEGACY FORMAT: redirect.viglink.com -->
-        <a id="test-link-legacy" href="#" class="btn" style="display:none; font-size: 1.1rem; background: #dc3545;">LEGACY format (viglink) →</a>
-        <p id="test-loading-legacy">Loading legacy format link...</p>
-        <br><br>
-
-        <!-- SOVRN DASHBOARD GENERATED LINK -->
-        <a href="https://sovrn.co/12l8tso" class="btn" style="background: #28a745; font-size: 1.1rem;">Sovrn Dashboard Link →</a>
-    </div>
-
     <script>
-        console.log("🚀 Smart Buys Bridge v4.1 - WITH TEST BUTTON - ACTIVE");
+        console.log("Bridge Logic v3 (Humanized) Loaded");
 
-        const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link-legacy";
+        const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
         const params = new URLSearchParams(window.location.search);
         const destination = params.get('url');
 
@@ -97,20 +79,19 @@
                     if (data.url) {
                         try { window.history.replaceState(null, "", currentLoc); } catch (e) {}
 
-                        // Create anchor element to simulate human click behavior
                         var a = document.createElement('a');
                         a.href = data.url;
                         a.id = 'redirect-link';
                         a.style.display = 'none';
                         a.referrerPolicy = "no-referrer-when-downgrade";
-                        a.rel = "";
-                        document.body.appendChild(a);
+                        a.rel = ""; 
 
-                        // Random delay (800-1200ms) to simulate human behavior and avoid bot detection
-                        const humanDelay = 800 + Math.floor(Math.random() * 400);
+                        document.body.appendChild(a);
+                        
+                        // INCREASED DELAY to 800ms to look more like a human interaction
                         setTimeout(() => {
                             document.getElementById('redirect-link').click();
-                        }, humanDelay);
+                        }, 800);
                     } else {
                         window.location.replace(destination);
                     }
@@ -122,49 +103,6 @@
         } else {
             document.getElementById('landing-ui').style.display = 'block';
         }
-
-        // TEST BUTTON LOGIC - REMOVE AFTER TESTING
-        const TEST_EBAY_URL = "https://www.ebay.com/itm/405211918254";
-        const testCuid = getCUID();
-        const currentLoc = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        const WORKER_LEGACY_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link-legacy";
-
-        // NEW FORMAT: sovrn.co
-        fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(TEST_EBAY_URL)}&cuid=${encodeURIComponent(testCuid)}&_t=${Date.now()}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.url) {
-                    const testLink = document.getElementById('test-link-new');
-                    testLink.href = data.url;
-                    testLink.referrerPolicy = "no-referrer-when-downgrade";
-                    testLink.style.display = 'inline-block';
-                    document.getElementById('test-loading-new').style.display = 'none';
-                    console.log("✅ NEW format link ready:", data.url);
-                }
-            })
-            .catch(err => {
-                document.getElementById('test-loading-new').innerText = "Error loading new format link";
-                console.error("New format error:", err);
-            });
-
-        // LEGACY FORMAT: redirect.viglink.com (with loc)
-        fetch(`${WORKER_LEGACY_URL}?url=${encodeURIComponent(TEST_EBAY_URL)}&cuid=${encodeURIComponent(testCuid)}&loc=${encodeURIComponent(currentLoc)}&_t=${Date.now()}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.url) {
-                    const testLink = document.getElementById('test-link-legacy');
-                    testLink.href = data.url;
-                    testLink.referrerPolicy = "no-referrer-when-downgrade";
-                    testLink.style.display = 'inline-block';
-                    document.getElementById('test-loading-legacy').style.display = 'none';
-                    console.log("✅ LEGACY format link ready:", data.url);
-                }
-            })
-            .catch(err => {
-                document.getElementById('test-loading-legacy').innerText = "Error loading legacy format link";
-                console.error("Legacy format error:", err);
-            });
     </script>
-
 </body>
 </html>
