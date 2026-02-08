@@ -53,53 +53,34 @@
     </div>
 
     <script>
-        console.log("Bridge Logic v3 (Humanized) Loaded");
+        console.log("Bridge Logic v4 (vglnk.open) Loaded");
 
-        const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
         const params = new URLSearchParams(window.location.search);
         const destination = params.get('url');
 
-        function getCUID() {
-            let cuid = localStorage.getItem('sovrn_cuid');
-            if (!cuid) {
-                cuid = 'sb_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-                localStorage.setItem('sovrn_cuid', cuid);
-            }
-            return cuid;
-        }
-
         if (destination) {
             document.getElementById('loading-ui').style.display = 'flex';
-            const cuid = getCUID();
-            const currentLoc = window.location.protocol + "//" + window.location.host + window.location.pathname;
 
-            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&loc=${encodeURIComponent(currentLoc)}&_t=${Date.now()}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.url) {
-                        try { window.history.replaceState(null, "", currentLoc); } catch (e) {}
-
-                        var a = document.createElement('a');
-                        a.href = data.url;
-                        a.id = 'redirect-link';
-                        a.style.display = 'none';
-                        a.referrerPolicy = "no-referrer-when-downgrade";
-                        a.rel = ""; 
-
-                        document.body.appendChild(a);
-                        
-                        // INCREASED DELAY to 800ms to look more like a human interaction
-                        setTimeout(() => {
-                            document.getElementById('redirect-link').click();
-                        }, 800);
-                    } else {
+            // Wait for the Sovrn SDK to load, then use vglnk.open() for proper monetization & click tracking
+            function waitForVglnk(callback, maxWait) {
+                const start = Date.now();
+                const check = setInterval(() => {
+                    if (typeof vglnk !== 'undefined' && typeof vglnk.open === 'function') {
+                        clearInterval(check);
+                        callback();
+                    } else if (Date.now() - start > maxWait) {
+                        clearInterval(check);
+                        // SDK failed to load, fallback to direct redirect
+                        console.error("Sovrn SDK did not load in time, falling back to direct redirect");
                         window.location.replace(destination);
                     }
-                })
-                .catch(err => {
-                    console.error("Error:", err);
-                    window.location.replace(destination);
-                });
+                }, 50);
+            }
+
+            waitForVglnk(() => {
+                try { window.history.replaceState(null, "", window.location.pathname); } catch (e) {}
+                vglnk.open(destination);
+            }, 5000);
         } else {
             document.getElementById('landing-ui').style.display = 'block';
         }
