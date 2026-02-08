@@ -73,16 +73,14 @@
     <script>
         console.log("🚀 Smart Buys Bridge v4.1 - WITH TEST BUTTON - ACTIVE");
 
-        const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link";
+        const WORKER_SIGNER_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link-legacy";
         const params = new URLSearchParams(window.location.search);
         const destination = params.get('url');
 
         function getCUID() {
             let cuid = localStorage.getItem('sovrn_cuid');
             if (!cuid) {
-                const randomPart = Math.random().toString(36).substr(2, 9);
-                const timestamp = Date.now().toString();
-                cuid = 'sb' + randomPart + timestamp;
+                cuid = 'sb_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
                 localStorage.setItem('sovrn_cuid', cuid);
             }
             return cuid;
@@ -91,15 +89,13 @@
         if (destination) {
             document.getElementById('loading-ui').style.display = 'flex';
             const cuid = getCUID();
+            const currentLoc = window.location.protocol + "//" + window.location.host + window.location.pathname;
 
-            // Clean URL to avoid exposing destination in referrer
-            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-
-            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&_t=${Date.now()}`)
+            fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(destination)}&cuid=${encodeURIComponent(cuid)}&loc=${encodeURIComponent(currentLoc)}&_t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.url) {
-                        try { window.history.replaceState(null, "", cleanUrl); } catch (e) {}
+                        try { window.history.replaceState(null, "", currentLoc); } catch (e) {}
 
                         // Create anchor element to simulate human click behavior
                         var a = document.createElement('a');
