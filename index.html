@@ -60,29 +60,11 @@
 
         if (destination) {
             document.getElementById('loading-ui').style.display = 'flex';
-
-            // Wait for the Sovrn SDK to load, then use vglnk.open() for proper monetization & click tracking
-            function waitForVglnk(callback, maxWait) {
-                const start = Date.now();
-                const check = setInterval(() => {
-                    if (typeof vglnk !== 'undefined' && typeof vglnk.open === 'function') {
-                        clearInterval(check);
-                        callback();
-                    } else if (Date.now() - start > maxWait) {
-                        clearInterval(check);
-                        // SDK failed to load, fallback to direct redirect
-                        console.error("Sovrn SDK did not load in time, falling back to direct redirect");
-                        window.location.replace(destination);
-                    }
-                }, 50);
-            }
-
-            waitForVglnk(() => {
-                try { window.history.replaceState(null, "", window.location.pathname); } catch (e) {}
-                vglnk.open(destination);
-            }, 5000);
+            console.log('tessstt');
+            console.log(destination);
+            vglnk.open( destination );
         } else {
-            document.getElementById('landing-ui').style.display = 'block';
+            // document.getElementById('landing-ui').style.display = 'block';
         }
     </script>
 
