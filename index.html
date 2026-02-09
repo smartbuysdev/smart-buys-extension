@@ -60,54 +60,35 @@
 
         if (destination) {
             document.getElementById('loading-ui').style.display = 'flex';
-            console.log('tessstt');
-            console.log(destination);
-            vglnk.open( destination );
+
+            // Wait for the Sovrn SDK to load, then use vglnk.open() for proper monetization & click tracking
+            function waitForVglnk(callback, maxWait) {
+                const start = Date.now();
+                const check = setInterval(() => {
+                    if (typeof vglnk !== 'undefined' && typeof vglnk.open === 'function') {
+                        console.log('VGL1');
+                        clearInterval(check);
+                        callback();
+                    } else if (Date.now() - start > maxWait) {
+                        console.log('vgl2');
+                        clearInterval(check);
+                        // SDK failed to load, fallback to direct redirect
+                        console.error("Sovrn SDK did not load in time, falling back to direct redirect");
+                        window.location.replace(destination);
+                    }
+                }, 50);
+            }
+
+            waitForVglnk(() => {
+                try { window.history.replaceState(null, "", window.location.pathname); } catch (e) {}
+                console.log('VGL3');
+                
+                console.log(destination)
+                vglnk.open(destination);
+            }, 5000);
         } else {
             document.getElementById('landing-ui').style.display = 'block';
         }
-
-        // TEST BUTTON LOGIC - REMOVE AFTER TESTING
-        const TEST_EBAY_URL = "https://www.ebay.com/itm/405211918254";
-        const testCuid = getCUID();
-        const currentLoc = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        const WORKER_LEGACY_URL = "https://smartbuysebay.smartbuys-dev.workers.dev/sign-link-legacy";
-
-        // NEW FORMAT: sovrn.co
-        fetch(`${WORKER_SIGNER_URL}?url=${encodeURIComponent(TEST_EBAY_URL)}&cuid=${encodeURIComponent(testCuid)}&_t=${Date.now()}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.url) {
-                    const testLink = document.getElementById('test-link-new');
-                    testLink.href = data.url;
-                    testLink.referrerPolicy = "no-referrer-when-downgrade";
-                    testLink.style.display = 'inline-block';
-                    document.getElementById('test-loading-new').style.display = 'none';
-                    console.log("✅ NEW format link ready:", data.url);
-                }
-            })
-            .catch(err => {
-                document.getElementById('test-loading-new').innerText = "Error loading new format link";
-                console.error("New format error:", err);
-            });
-
-        // LEGACY FORMAT: redirect.viglink.com (with loc)
-        fetch(`${WORKER_LEGACY_URL}?url=${encodeURIComponent(TEST_EBAY_URL)}&cuid=${encodeURIComponent(testCuid)}&loc=${encodeURIComponent(currentLoc)}&_t=${Date.now()}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.url) {
-                    const testLink = document.getElementById('test-link-legacy');
-                    testLink.href = data.url;
-                    testLink.referrerPolicy = "no-referrer-when-downgrade";
-                    testLink.style.display = 'inline-block';
-                    document.getElementById('test-loading-legacy').style.display = 'none';
-                    console.log("✅ LEGACY format link ready:", data.url);
-                }
-            })
-            .catch(err => {
-                document.getElementById('test-loading-legacy').innerText = "Error loading legacy format link";
-                console.error("Legacy format error:", err);
-            });
     </script>
 
     <script type="text/javascript">
